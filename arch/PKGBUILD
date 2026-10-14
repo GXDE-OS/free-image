@@ -6,7 +6,7 @@ pkgdesc='Library for popular graphics image formats (Debian packaging, system li
 arch=('x86_64' 'aarch64')
 url="https://github.com/GXDE-OS/free-image"
 license=('GPL-2.0-only OR GPL-3.0-only OR LicenseRef-FIPL')
-depends=('libjpeg-turbo' 'jxrlib' 'openexr' 'openjpeg2' 'libpng' 'libraw' 'libtiff' 'libwebp' 'zlib'
+depends=('libjpeg-turbo' 'jxrlib' 'openexr' 'imath' 'openjpeg2' 'libpng' 'libraw' 'libtiff' 'libwebp' 'zlib'
          'libgcc' 'libstdc++' 'glibc')
 makedepends=('git' 'make' 'pkgconf' 'dos2unix' 'patch')
 provides=('freeimage')
@@ -46,6 +46,11 @@ build() {
   cd "$srcdir/$pkgname"
   CFLAGS+=' -Wall -pedantic -fPIC'
   CXXFLAGS+=' -Wall -pedantic -fPIC'
+  # Debian 的补丁写死 -I/usr/include/jxrlib，Arch 的 jxrlib 头文件在 /usr/include/libjxr，由 libjxr.pc 给出
+  # Debian's patches hard-code -I/usr/include/jxrlib; Arch's jxrlib keeps its
+  # headers in /usr/include/libjxr, as listed in libjxr.pc.
+  CFLAGS+=" $(pkg-config --cflags libjxr)"
+  CXXFLAGS+=" $(pkg-config --cflags libjxr)"
   make CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
   make -f Makefile.fip CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
 }
