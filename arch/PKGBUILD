@@ -51,6 +51,18 @@ build() {
   # headers in /usr/include/libjxr, as listed in libjxr.pc.
   CFLAGS+=" $(pkg-config --cflags libjxr)"
   CXXFLAGS+=" $(pkg-config --cflags libjxr)"
+  # Arch 的 libjxrglue.so 没有链接 libjpegxr，而 Debian 的补丁只链接 -ljxrglue；
+  # 显式链接 libjpegxr，否则 libjxrglue 的符号在运行时无法解析
+  # Arch's libjxrglue.so is not linked against libjpegxr, while Debian's
+  # patches only link -ljxrglue.  Link libjpegxr explicitly, or the symbols
+  # libjxrglue needs are unresolved at runtime.
+  LDFLAGS="-Wl,--no-as-needed -ljpegxr -Wl,--as-needed $LDFLAGS"
+  # Arch 的 libjxrglue.so 没有链接 libjpegxr，而 Debian 的补丁只链接 -ljxrglue；
+  # 显式链接 libjpegxr，否则 libjxrglue 的符号在运行时无法解析
+  # Arch's libjxrglue.so is not linked against libjpegxr, while Debian's
+  # patches only link -ljxrglue.  Link libjpegxr explicitly, or the symbols
+  # libjxrglue needs are unresolved at runtime.
+  LDFLAGS="-Wl,--no-as-needed -ljpegxr -Wl,--as-needed $LDFLAGS"
   make CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
   make -f Makefile.fip CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
 }
