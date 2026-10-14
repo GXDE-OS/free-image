@@ -1,0 +1,58 @@
+# Maintainer: CharOfString <root@charofstring.cc>
+pkgname=freeimage-git
+pkgver=3.18.0.ds2
+pkgrel=11
+pkgdesc='Library for popular graphics image formats (Debian packaging, system libraries)'
+arch=('x86_64' 'aarch64')
+url="https://github.com/GXDE-OS/free-image"
+license=('GPL-2.0-only OR GPL-3.0-only OR LicenseRef-FIPL')
+depends=('libjpeg-turbo' 'jxrlib' 'openexr' 'openjpeg2' 'libpng' 'libraw' 'libtiff' 'libwebp' 'zlib'
+         'libgcc' 'libstdc++' 'glibc')
+makedepends=('git' 'make' 'pkgconf' 'dos2unix' 'patch')
+provides=('freeimage')
+conflicts=('freeimage')
+source=()
+sha512sums=()
+
+# 直接使用 PKGBUILD 所在的 git 仓库作为源码 ・ Build from the git checkout this PKGBUILD lives in.
+_srcroot() {
+  git -C "$startdir" rev-parse --show-toplevel
+}
+
+prepare() {
+  # 仓库是 Debian 的打包仓库，debian/patches 未应用（去掉了自带的第三方库，改用系统库）。
+  # 在 $srcdir 中的副本上按 series 应用补丁，不改动仓库
+  # The repository is Debian's packaging repository with debian/patches
+  # unapplied (they drop the vendored libraries in favour of the system ones).
+  # Apply the series to a copy in $srcdir and leave the checkout untouched.
+  rm -rf "$srcdir/$pkgname"
+  mkdir "$srcdir/$pkgname"
+  tar -C "$(_srcroot)" --exclude=./.git -cf - . | tar -C "$srcdir/$pkgname" -xf -
+  cd "$srcdir/$pkgname"
+  local _p
+  while read -r _p; do
+    [[ -z $_p || $_p == \#* ]] && continue
+    patch -p1 -N -i "debian/patches/$_p"
+  done < debian/patches/series
+  # 与 debian/rules 的 gen-src-list 相同 ・ Same as gen-src-list in debian/rules.
+  sh gensrclist.sh
+  make -f Makefile.gnu dos2unix
+  sh genfipsrclist.sh
+  make -f Makefile.fip dos2unix
+}
+
+build() {
+  # 与 debian/rules 相同 ・ Same as debian/rules.
+  cd "$srcdir/$pkgname"
+  CFLAGS+=' -Wall -pedantic -fPIC'
+  CXXFLAGS+=' -Wall -pedantic -fPIC'
+  make CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
+  make -f Makefile.fip CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS"
+}
+
+package() {
+  cd "$srcdir/$pkgname"
+  make INCDIR="$pkgdir/usr/include" INSTALLDIR="$pkgdir/usr/lib" install
+  make -f Makefile.fip INCDIR="$pkgdir/usr/include" INSTALLDIR="$pkgdir/usr/lib" install
+  install -Dm644 license-fi.txt "$pkgdir/usr/share/licenses/$pkgname/license-fi.txt"
+}
