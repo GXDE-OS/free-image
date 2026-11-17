@@ -1,5 +1,5 @@
 # Maintainer: CharOfString <root@charofstring.cc>
-pkgname=freeimage-git
+pkgname=freeimage
 pkgver=3.18.0.ds2
 pkgrel=11
 pkgdesc='Library for popular graphics image formats (Debian packaging, system libraries)'
@@ -9,8 +9,9 @@ license=('GPL-2.0-only OR GPL-3.0-only OR LicenseRef-FIPL')
 depends=('libjpeg-turbo' 'jxrlib' 'openexr' 'imath' 'openjpeg2' 'libpng' 'libraw' 'libtiff' 'libwebp' 'zlib'
          'libgcc' 'libstdc++' 'glibc')
 makedepends=('git' 'make' 'pkgconf' 'dos2unix' 'patch')
-provides=('freeimage')
-conflicts=('freeimage')
+provides=("freeimage-git=$pkgver")
+conflicts=('freeimage-git')
+replaces=('freeimage-git')
 source=()
 sha512sums=()
 
